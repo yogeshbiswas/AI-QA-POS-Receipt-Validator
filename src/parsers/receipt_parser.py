@@ -165,13 +165,29 @@ def parse_receipt_lines(receipt_lines: list[str]) -> ReceiptData:
                         item_code = code_match.group(1)
 
                 if item_code:
+                    quantity = 1
+
+                    # Check the following receipt lines for a printed quantity.
+                    # Example: "QTY: 3 @ $3.09"
+                    for j in range(i + 1, min(i + 5, len(receipt_lines))):
+                        qty_match = re.search(
+                            r"QTY:\s*(\d+)",
+                            receipt_lines[j],
+                            re.IGNORECASE,
+                        )
+
+                        if qty_match:
+                            quantity = int(qty_match.group(1))
+                            break
+
                     items.append(
                         ReceiptItem(
                             description=description,
                             item_code=item_code,
                             price=price,
+                            quantity=quantity,
                         )
-                    )       
+                    )      
 
         item_count_match = re.search(
             r"(\d+)\s+(?:Sale|Return) item\(s\)",
