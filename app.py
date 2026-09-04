@@ -255,7 +255,8 @@ if validate_button:
                             ai_qa_review = generate_ai_qa_review(
                                 result.get("receipt_text", "")
                             )
-                        except Exception:
+                        except Exception as e:
+                            print(f"AI ERROR: {repr(e)}")
                             ai_qa_review = {
                                 "overall_ai_review": "REVIEW_NOT_AVAILABLE",
                                 "summary": (

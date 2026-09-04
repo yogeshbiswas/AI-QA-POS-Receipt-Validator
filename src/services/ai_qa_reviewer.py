@@ -11,7 +11,7 @@ load_dotenv()
 
 MODEL = os.getenv(
     "AI_QA_REVIEW_MODEL",
-    "qwen/qwen3.6-27b",
+    "openai/gpt-oss-20b",
 )
 
 
@@ -64,6 +64,12 @@ Review ONLY the physical receipt text below.
 
 You have NO POS XML and must NOT compare this receipt
 with any POS transaction data.
+
+Important receipt knowledge:
+
+A printed "Return Amount" line on an item indicates the item's future return value or return eligibility.
+It does NOT mean the item was returned in this transaction.
+Do not interpret a printed Return Amount as a deduction from the subtotal or total unless the receipt explicitly indicates a return transaction.
 
 Perform an independent QA review of the receipt.
 
@@ -182,8 +188,6 @@ or concatenated words inside JSON string values.
 Express calculations in simple readable text, for example:
 "Subtotal $104.49 plus tax $1.12 equals total $105.61."
 
-Keep the response concise.
-
 PHYSICAL RECEIPT:
 
 ---------------- RECEIPT START ----------------
@@ -202,12 +206,12 @@ PHYSICAL RECEIPT:
             }
         ],
         temperature=0,
-        max_completion_tokens=4000,
+        max_completion_tokens=900,
         response_format={
             "type": "json_object",
         },
         reasoning_format="hidden",
-        reasoning_effort="default",
+        reasoning_effort="low",
     )
 
     content = response.choices[0].message.content
@@ -240,5 +244,30 @@ def _parse_ai_review(
         raise RuntimeError(
             "AI QA Reviewer returned an invalid response structure."
         )
+
+    
+    tender_status = review.get("tender_discrepancy", {}).get("status")
+    calculation_status = review.get("calculation_review", {}).get("status")
+
+    additional_observations = review.get(
+        "additional_observations",
+        [],
+    )
+
+    has_issue = (
+        tender_status == "ISSUE_DETECTED"
+        or calculation_status == "ISSUE_DETECTED"
+        or any(
+            obs.get("status") == "ISSUE_DETECTED"
+            for obs in additional_observations
+            if isinstance(obs, dict)
+        )
+    )
+
+    review["overall_ai_review"] = (
+        "ISSUE_DETECTED"
+        if has_issue
+        else "NO_ISSUE_DETECTED"
+    )
 
     return review

@@ -6,7 +6,7 @@ from groq import Groq
 
 load_dotenv()
 
-MODEL = "qwen/qwen3.6-27b"
+MODEL = "openai/gpt-oss-20b"
 
 
 def extract_receipt_text_with_groq(
@@ -72,7 +72,7 @@ def extract_receipt_text_with_groq(
             }
         ],
         temperature=0,
-        max_completion_tokens=4096,
+        max_completion_tokens=900,
         reasoning_format="hidden",
     )
 
