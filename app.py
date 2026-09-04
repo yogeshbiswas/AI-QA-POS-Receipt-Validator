@@ -197,10 +197,10 @@ with build_col:
     )
 
 
-voided_item_code = st.text_input(
-    "Voided Item Code (optional)",
-    placeholder="Enter item code only when validating a void transaction",
-)
+# voided_item_code = st.text_input(
+#     "Voided Item Code (optional)",
+#     placeholder="Enter item code only when validating a void transaction",
+# )
 
 st.divider()
 
@@ -246,11 +246,6 @@ if validate_button:
                     result = validate_and_format_transaction(
                         xml_path=str(xml_path),
                         receipt_path=str(receipt_path),
-                        voided_item_code=(
-                            voided_item_code.strip()
-                            if voided_item_code.strip()
-                            else None
-                        ),
                         tester_name=tester_name.strip() if tester_name.strip() else None,
                         receipt_filename=receipt_file.name,
                         xml_filename=xml_file.name,

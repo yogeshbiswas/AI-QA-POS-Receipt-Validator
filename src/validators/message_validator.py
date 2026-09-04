@@ -21,8 +21,11 @@ def validate_duplicate_receipt_lines(
         if stripped in ignored_lines:
             return True
 
-        # Any separator made only of dashes/spaces
-        if re.fullmatch(r"[- ]{10,}", stripped):
+        # Formatting separators:
+        # ------
+        # ******
+        # ______
+        if re.fullmatch(r"[-_* =]{10,}", stripped):
             return True
 
         # Full timestamp
@@ -40,22 +43,45 @@ def validate_duplicate_receipt_lines(
         ):
             return True
 
-        # Item metadata line.
-        # Examples:
-        # 840243125319  StCiCo
-        # 8211051       N
-        # Future receipts may contain other item
-        # classification/tax codes. We ignore the
-        # entire metadata line rather than specific values.
+        # Item metadata / UPC / classification code
+        # Example:
+        # 840243125319 StCiCo
+        # 8211051 N
         if re.fullmatch(
             r"\d{6,14}(?:\s+\S+)*",
             stripped,
         ):
             return True
 
+        # Quantity lines
+        # QTY: 2
+        if re.fullmatch(
+            r"QTY:\s*\d+(?:\s+.*)?",
+            stripped,
+            re.IGNORECASE,
+        ):
+            return True
+
+        # Prescription / item reference metadata
+        # Rx Number: 2154
+        if re.fullmatch(
+            r"Rx Number:\s*\S+",
+            stripped,
+            re.IGNORECASE,
+        ):
+            return True
+
         # Item-level return amount
         if re.fullmatch(
             r"Return Amount\s+\$-?[\d.]+",
+            stripped,
+            re.IGNORECASE,
+        ):
+            return True
+
+        # Item-level promotion / redemption text
+        if re.match(
+            r"^Points Redemption\s+\$?[\d.]+",
             stripped,
             re.IGNORECASE,
         ):
